@@ -33,9 +33,9 @@ const ROOM_TIMEOUT_LENGTH = 1800000;//(30min) Length of time the server will wai
 const CHECK_ROOM_INTERVAL = 300000; // (5min) How often the server will check if there are any players
 const GAME_TICK_RATE = 50;         // (10hz) The game ticks at the rate of 1 tick per 100 milliseconds (10Hz)
 const SLOW_TO_FAST_TICK = 100;      // (.1hz) How many fast ticks per slow ticks (for slow updates to client)
-const TABLE_CENTER_X = 400;
-const TABLE_CENTER_Y = 400;
-const DISTANCE_FROM_CENTER = 400;
+const TABLE_CENTER_X = 0;
+const TABLE_CENTER_Y = 0;
+const DISTANCE_FROM_CENTER = 500;
 const HAND_WIDTH = 400;
 const HAND_HEIGHT = 150;
 const HAND_SPACING = 50;
@@ -75,6 +75,23 @@ const cardNames = ['back',
   'joker'
 ];
 
+var seats = {};
+for(var i = 1; i <= 8; i++) {
+  var angle = (i-1) * 45;
+  var numAsString = i.toString(10);
+  
+  seats[numAsString] = {
+    id: numAsString,
+    name: 'Open',
+    x: TABLE_CENTER_X + DISTANCE_FROM_CENTER * Math.sin(Phaser.Math.DegToRad(angle)),
+    y: TABLE_CENTER_Y + DISTANCE_FROM_CENTER * Math.cos(Phaser.Math.DegToRad(angle)),
+    available: true,
+    rotation: angle,
+    transform: 0,
+    socket: 0
+  };
+}
+/*
 var seats = {
   ['1']: {
     id: '1',
@@ -157,6 +174,7 @@ var seats = {
     socket: 0 
   },
 };
+*/
 
 function preload() {
   this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');

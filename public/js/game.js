@@ -70,7 +70,10 @@ function create() {
 
   cam = this.cameras.main;
   cam.setBackgroundColor('#3CB371');
-  cam.setBounds(-game.config.width, -game.config.height, game.config.width*2, game.config.height*2);
+  cam.centerOn(0,0);
+  var zoom = Math.min(window.innerHeight / 1080, window.innerWidth / 1400);
+  cam.setZoom(zoom);
+  //cam.setBounds(-game.config.width, -game.config.height, game.config.width*2, game.config.height*2);
 
   if(playerNickname)
     self.socket.emit('playerNickname', playerNickname);
@@ -81,7 +84,7 @@ function create() {
 
   self.input.on('pointermove', function(pointer, currentlyOver) {
     if (pointer.leftButtonDown() && !currentlyOver[0] && isDragging == -1) {
-      var camAngle = Phaser.Math.DegToRad(players[self.socket.id].playerSpacing); // in radians
+      var camAngle = Phaser.Math.DegToRad(playerRotation); // in radians
       var deltaX = pointer.x - pointer.prevPosition.x;
       var deltaY = pointer.y - pointer.prevPosition.y;
       cam.scrollX -= (Math.cos(camAngle) * deltaX +
@@ -255,7 +258,7 @@ function moveDummyCursors(self){
   self.socket.on('moveDummyCursors', function(cursorUpdateInfo){
     Object.keys(cursorUpdateInfo).forEach(function(curCursor){
       //console.log(cursorUpdateInfo)
-      if(curCursor.playerId != players[self.socket.id].playerId){
+      if(players[self.socket.id] && curCursor.playerId != players[self.socket.id].playerId){
         self.dummyCursors.getChildren().forEach(function(dummyCursor){
           if(dummyCursor.playerId == cursorUpdateInfo[curCursor].playerId){
             dummyCursor.x = cursorUpdateInfo[curCursor].actualXY.x 
