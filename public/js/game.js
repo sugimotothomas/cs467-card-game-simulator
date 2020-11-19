@@ -71,7 +71,7 @@ function create() {
   cam = this.cameras.main;
   cam.setBackgroundColor('#3CB371');
   cam.centerOn(0,0);
-  var zoom = Math.min(window.innerHeight / 1080, window.innerWidth / 1400);
+  var zoom = Math.min(window.innerHeight / 900, window.innerWidth / 1100);
   cam.setZoom(zoom);
   //cam.setBounds(-game.config.width, -game.config.height, game.config.width*2, game.config.height*2);
 

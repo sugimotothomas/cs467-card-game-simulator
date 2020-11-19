@@ -1,6 +1,5 @@
 function moveObjectToHand(self, object, playerId, pos) {
   if(!object || !players[playerId]) {
-    console.log("Cannot move object to hand");
     return;
   }
   //console.log("Moved " + cardNames[object.objectId] + " to " + players[playerId].name + "'s hand.");
