@@ -15,7 +15,7 @@ import {
 // CONSTANTS
 export const MENU_DEPTH = 1000;
 export const CURSOR_DEPTH = 950;
-const STACK_SNAP_DISTANCE = 40;
+const STACK_SNAP_DISTANCE = 10;
 const LONG_PRESS_TIME = 300;
 export const CARD_WIDTH = 70;
 export const CARD_HEIGHT = 95;
