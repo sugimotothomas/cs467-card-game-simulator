@@ -105,7 +105,7 @@ export function updateObject(self, xPos, yPos, objectDepth, angle, items, isFace
       updateSprite(spriteToUpdate, serverSpriteId, isFaceUp[i]);
 
       // Stack's Parallax Visual Effect 
-      stackVisualEffect(spriteToUpdate, i, items.length-1);
+      stackVisualEffect(self, spriteToUpdate, angle, i, items.length-1);
     }
   }
   return object;
