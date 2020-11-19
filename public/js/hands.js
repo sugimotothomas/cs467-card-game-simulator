@@ -43,24 +43,18 @@ function addHandObject(self, playerId, pos, angle, spriteId, x, y, isFaceUp) {
   return object;
 }
 
-export function addHand(self, playerId, xPos, yPos, hand, isFaceUp, angle) {
-  // Temp box to show the size of the hands (Visual only)
-  var handZone = self.add.rectangle(xPos, yPos, HAND_WIDTH, HAND_HEIGHT, 0x6666ff);
-  handZone.playerId = playerId;             // The player associated with the hand
-  handZone.angle = angle;
-  handZone.depth = 0;
+export function addHand(self, playerId, xPos, yPos, angle) {
   // Inner zone which detects when a card is over it
-  var snapZone = self.add.circle(xPos, yPos, HAND_HEIGHT/2, 0xff4c4c);
-  //var snapZone = self.add.rectangle(xPos, yPos, HAND_WIDTH - CARD_WIDTH, HAND_HEIGHT - CARD_HEIGHT, 0xff4c4c);
+  var snapZone = self.add.rectangle(xPos, yPos, 50, 50, 0xff4c4c);
+  //snapZone.setVisible(false); // Visible for debugging
   snapZone.playerId = playerId;
   snapZone.angle = angle;
   snapZone.depth = 0;
-  
   self.handSnapZones.add(snapZone);
 
   hands[playerId] = {
     playerId: playerId,
-    zone: handZone,   // Rectangle Game object for hand zone
+    angle: angle,
     size: 0             // How many cards in hand
   }
 }
@@ -71,19 +65,14 @@ export function updateHand(self, playerId, xPos, yPos, spriteIds, objectXs, obje
     return;
   }
   // Update hand snap zone
-  if(hands[playerId].zone.x != xPos || hands[playerId].zone.y != yPos || hands[playerId].zone.angle != angle) {
-    self.handSnapZones.getChildren().forEach(function (zone) {
-      if(zone.playerId == playerId) {
-        zone.x = xPos;
-        zone.y = yPos;
-        zone.angle = angle;
-      }
-    }); 
-  }
-  // Update hand zone rectangle
-  hands[playerId].zone.x = xPos;
-  hands[playerId].zone.y = yPos;
-  hands[playerId].zone.angle = angle;
+  self.handSnapZones.getChildren().forEach(function (zone) {
+    if(zone.playerId == playerId) {
+      zone.x = xPos;
+      zone.y = yPos;
+    }
+  }); 
+  
+  hands[playerId].angle = angle;
   hands[playerId].size = spriteIds.length;
 
   // Loop through server list
@@ -145,8 +134,7 @@ function findClosestHandZone(self, object) {
   var objBounds = object.getBounds();
   self.handSnapZones.getChildren().forEach(function (zone) {
     var zoneBounds = zone.getBounds();
-    if(Phaser.Geom.Intersects.CircleToRectangle(zoneBounds, objBounds))
-    //if(Phaser.Geom.Intersects.RectangleToRectangle(objBounds, zoneBounds))
+    if(Phaser.Geom.Intersects.RectangleToRectangle(objBounds, zoneBounds))
       closestHand = hands[zone.playerId];
   }); 
   return closestHand;
@@ -190,7 +178,6 @@ function takeFromHand(self, object) {
   });
   
   setDraggingObj(addTableObject(self, [spriteId], x, y, [isFaceUp]));
-
   //console.log("Taking " + cardNames[draggingObj.objectId] + " from hand");
 }
 
@@ -240,27 +227,6 @@ export function checkForHandZone(self, gameObject, dragX, dragY) {
   ) {
     takeFromHand(self, gameObject);
   }
-
-
-  /*
-  var objBounds = gameObject.getBounds();
-  var foundHandZone = false;
-  self.handSnapZones.getChildren().forEach(function (zone) {
-    var zoneBounds = zone.getBounds();
-    if(zone.playerId == gameObject.playerId && Phaser.Geom.Intersects.RectangleToRectangle(objBounds, zoneBounds)) {
-      foundHandZone = true;
-      dragHandObject(self, gameObject, dragX, dragY);
-    }
-  }); 
-  
-  if(
-    !foundHandZone &&                   // Not in a handZone
-    gameObject === draggingObj && 
-    !drewAnObject 
-  ) {
-    takeFromHand(self, draggingObj);
-  }
-  */
 }
 
 function dragHandObject(self, gameObject, dragX, dragY){
@@ -325,7 +291,7 @@ function findPosToInsertInHand(self, object) {
   if(closest) {
     //console.log("closest="+closest.first.name + " secondClosest=" + secondClosest.first.name);
     var hand = hands[closest.playerId];
-    var angle = Phaser.Math.DegToRad(hand.zone.angle);
+    var angle = Phaser.Math.DegToRad(hand.angle);
     var isLeftOfClosest = Math.cos(angle) * (object.x-closest.x) + Math.sin(angle) * (object.y-closest.y) < 0;
   
     // Two handObjects are near

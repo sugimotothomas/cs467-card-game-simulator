@@ -360,7 +360,6 @@ export function setDrewAnObject(setting) {
 }
 
 export function setDraggingObj(object) {
-  //draggingObj.active = false;       // Hide object to be deleted in updateHand
   draggingObj.setVisible(false);
   draggingObj.setActive(false);
   

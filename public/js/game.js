@@ -151,8 +151,6 @@ function updatePlayers(self, playersInfo) {
               id, 
               playersInfo[id].x, 
               playersInfo[id].y, 
-              playersInfo[id].hand, 
-              playersInfo[id].isFaceUp, 
               -playersInfo[id].playerSpacing);
     }
     else {
@@ -170,12 +168,11 @@ function updatePlayers(self, playersInfo) {
   // Delete old hands
   Object.keys(hands).forEach(function (id) {
     if(playersInfo[id] == null) {
-      hands[id].zone.destroy();
+      //hands[id].zone.destroy();
       delete hands[id];
     }
   });
   self.handObjects.getChildren().forEach(function (handObject) {
-    //console.log("Card " + cardNames[handObject.objectId]);
     if(playersInfo[handObject.playerId] == null) {
       handObject.removeAll(true); 
       handObject.destroy();
