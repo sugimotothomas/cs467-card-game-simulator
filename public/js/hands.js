@@ -50,10 +50,12 @@ export function addHand(self, playerId, xPos, yPos, hand, isFaceUp, angle) {
   handZone.angle = angle;
   handZone.depth = 0;
   // Inner zone which detects when a card is over it
-  var snapZone = self.add.rectangle(xPos, yPos, HAND_WIDTH - CARD_WIDTH, HAND_HEIGHT - CARD_HEIGHT, 0xff4c4c);
+  var snapZone = self.add.circle(xPos, yPos, HAND_HEIGHT/2, 0xff4c4c);
+  //var snapZone = self.add.rectangle(xPos, yPos, HAND_WIDTH - CARD_WIDTH, HAND_HEIGHT - CARD_HEIGHT, 0xff4c4c);
   snapZone.playerId = playerId;
   snapZone.angle = angle;
   snapZone.depth = 0;
+  
   self.handSnapZones.add(snapZone);
 
   hands[playerId] = {
@@ -143,7 +145,8 @@ function findClosestHandZone(self, object) {
   var objBounds = object.getBounds();
   self.handSnapZones.getChildren().forEach(function (zone) {
     var zoneBounds = zone.getBounds();
-    if(Phaser.Geom.Intersects.RectangleToRectangle(objBounds, zoneBounds))
+    if(Phaser.Geom.Intersects.CircleToRectangle(zoneBounds, objBounds))
+    //if(Phaser.Geom.Intersects.RectangleToRectangle(objBounds, zoneBounds))
       closestHand = hands[zone.playerId];
   }); 
   return closestHand;
