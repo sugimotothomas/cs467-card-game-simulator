@@ -44,13 +44,14 @@ const CARD_HEIGHT = 95;
 
 // Global Objects
 //--------------------------------------------------------------------------------------------
-const objectInfoToSend = {};        // Object to send in objectUpdates
-const players = {};                 // Info of all the current players in the game session
+const objectInfoToSend = {};          // Object to send in objectUpdates
+const players = {};                   // Info of all the current players in the game session
 const cursorInfo = {};
-const options = {};                 // Options for the game
-options["lockedHands"] = true;     // If true, players can only take cards from their own hand.
-options["flipWhenExitHand"] = false; // If true, when leaving a hand, cards will automatically flip to hide.
-  
+const options = {};                   // Options for the game
+options["lockedHands"] = true;        // If true, players can only take cards from their own hand.
+options["flipWhenExitHand"] = false;  // If true, when leaving a hand, cards will automatically flip to hide.
+options["flipWhenEnterHand"] = true;  // If true, cards face down will flip up when entering a hand
+
 // Global Variables
 //--------------------------------------------------------------------------------------------
 /* Global Variables Set outside game.js (Needed to communicate to / from server.js)

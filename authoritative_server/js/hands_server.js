@@ -8,10 +8,10 @@ function moveObjectToHand(self, object, playerId, pos) {
   
   for(var i = 0; i < numSprites; i++) {
     var sprite = object.first;      // Get sprite object
+    var isFaceUp = options["flipWhenEnterHand"] ? true : sprite.isFaceUp;
     // Update hand info for client
     players[playerId].hand.splice(pos, 0, sprite.spriteId);  
-    players[playerId].isFaceUp.splice(pos, 0, sprite.isFaceUp);     
-    //players[hand.playerId].isFaceUp.splice(pos, 0, true); // Always flip the card
+    players[playerId].isFaceUp.splice(pos, 0, isFaceUp);     
 
     object.remove(sprite, true);    // Remove sprite from container
   }
