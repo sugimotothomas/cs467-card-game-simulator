@@ -21,9 +21,10 @@ import {
 
 
 // CONSTANTS
-const HAND_WIDTH = 225;
+const HAND_WIDTH = 300;
 const HAND_HEIGHT = 75;
 const HAND_SPACING = 50;
+const HAND_SNAP_DIST = 100;
 
 // GLOBAL VARIABLES
 export const hands = {};      // Object with information about players hands
@@ -100,7 +101,7 @@ export function updateHand(self, playerId, xPos, yPos, spriteIds, objectXs, obje
       }
     });
 
-    if(!hasUpdated) {
+    if(!hasUpdated && isDragging != serverSpriteId) {
       // Create Object
       addHandObject(self, playerId, i, angle, serverSpriteId, serverX, serverY, serverIsFaceUp);
     }
@@ -121,13 +122,15 @@ export function checkSnapToHand(self, object) {
   var hand = findClosestHandZone(self, object);
   // Add to empty hand
   if(hand && hand.size == 0) {
-    moveObjectToHand(self, object, hand, 0);
+    moveObjectToHand(self, object, hand.playerId, 0);
     return true;
   }
-  if(hand) {
-    var pos = findPosToInsertInHand(self, object);
+  else {
+    var data = findPosToInsertInHand(self, object);
+    var playerId = data[0];
+    var pos = data[1];
     if(pos != -1) {
-      moveObjectToHand(self, object, hand, pos);
+      moveObjectToHand(self, object, playerId, pos);
       return true;
     }
   }
@@ -147,20 +150,20 @@ function findClosestHandZone(self, object) {
 }
 
 // Move a whole stack to the hand
-function moveObjectToHand(self, object, hand, pos) {
+function moveObjectToHand(self, object, playerId, pos) {
   self.socket.emit('objectToHand', { 
     objectId: object.objectId,
-    playerId: hand.playerId,
+    playerId: playerId,
     pos: pos
   });
 
   // ** UPDATE LOCALLY
 }
 
-function takeFromHand(self) {
-  const playerId = draggingObj.playerId; 
+function takeFromHand(self, object) {
+  const playerId = object.playerId; 
   if(!playerId) {
-    console.log("Cannot take card from hand draggingObj=" + cardNames[draggingObj.objectId]);
+    console.log("Cannot take card from hand draggingObj=" + cardNames[object.objectId]);
     return;
   }
   // Locked hands (other players cant take cards from your hand)
@@ -168,25 +171,22 @@ function takeFromHand(self) {
     return;
   }
   setDrewAnObject(true);
-  //drewAnObject = true;   
-  const spriteId = draggingObj.first.spriteId;
-  var isFaceUp = draggingObj.first.isFaceUp;
+
+  const spriteId = object.first.spriteId;
+  var isFaceUp = object.first.isFaceUp;
   if(options["flipWhenExitHand"]) 
     isFaceUp = false;  // Always flip the card over when taking
-  const x = draggingObj.x;
-  const y = draggingObj.y;
+  const x = object.x;
+  const y = object.y;
   
   self.socket.emit('handToTable', { 
-    objectId: draggingObj.objectId,
+    objectId: object.objectId,
     playerId: playerId,
     x: x,
     y: y
   });
   
-  draggingObj.active = false;       // Hide object to be deleted in updateHand
-  draggingObj.setVisible(false);
-  var newObj = setDraggingObj(addTableObject(self, [spriteId], x, y, [isFaceUp]));
-  newObj.depth = MENU_DEPTH-1;
+  setDraggingObj(addTableObject(self, [spriteId], x, y, [isFaceUp]));
 
   //console.log("Taking " + cardNames[draggingObj.objectId] + " from hand");
 }
@@ -218,6 +218,28 @@ export function flipHandObject(self, object) {
 }
 
 export function checkForHandZone(self, gameObject, dragX, dragY) {
+  var foundHand = false;
+  var dist = HAND_SNAP_DIST;
+
+  self.handObjects.getChildren().forEach(function (handObject) {
+    if(handObject.objectId != gameObject.objectId) {
+      var tempDistance = Phaser.Math.Distance.BetweenPoints(gameObject, handObject);
+      if(tempDistance < dist) {
+        dragHandObject(self, gameObject, dragX, dragY);
+        foundHand = true;
+      } 
+    }
+  });
+  if(
+    !foundHand &&                   // Not in a handZone
+    gameObject === draggingObj && 
+    !drewAnObject 
+  ) {
+    takeFromHand(self, gameObject);
+  }
+
+
+  /*
   var objBounds = gameObject.getBounds();
   var foundHandZone = false;
   self.handSnapZones.getChildren().forEach(function (zone) {
@@ -233,8 +255,9 @@ export function checkForHandZone(self, gameObject, dragX, dragY) {
     gameObject === draggingObj && 
     !drewAnObject 
   ) {
-    takeFromHand(self);
+    takeFromHand(self, draggingObj);
   }
+  */
 }
 
 function dragHandObject(self, gameObject, dragX, dragY){
@@ -258,13 +281,16 @@ function dragHandObject(self, gameObject, dragX, dragY){
 
 // Change the position of cards in the hand
 export function moveAroundInHand(self, object) {
-  var pos = findPosToInsertInHand(self, object);
-
-  self.socket.emit('handToHand', { 
-    objectId: object.objectId,
-    playerId: object.playerId,
-    pos: pos  // Position to move to
-  });
+  var data = findPosToInsertInHand(self, object);
+  var playerId = data[0];
+  var pos = data[1];
+  if(pos != -1) {
+    self.socket.emit('handToHand', { 
+      objectId: object.objectId,
+      playerId: playerId,
+      pos: pos  // Position to move to
+    });
+  }
 
     //**UPDATE LOCALLY
     
@@ -273,9 +299,9 @@ export function moveAroundInHand(self, object) {
 
 function findPosToInsertInHand(self, object) {
   var closest = null;
-  var dist = 500;
+  var dist = HAND_SNAP_DIST;
   var secondClosest = null;
-  var dist2 = 500;
+  var dist2 = HAND_SNAP_DIST;
 
   self.handObjects.getChildren().forEach(function (handObject) {
     if(handObject.objectId != object.objectId) {
@@ -306,17 +332,17 @@ function findPosToInsertInHand(self, object) {
       var isLeftOfSecondClosest = Math.cos(angle) * (object.x-secondClosest.x) + Math.sin(angle) * (object.y-secondClosest.y) < 0;
       
       if(isLeftOfClosest && isLeftOfSecondClosest) 
-        return leftPos;        // Left of both cards
+        return [closest.playerId, leftPos];        // Left of both cards
       else if(!isLeftOfClosest && !isLeftOfSecondClosest)
-        return rightPos+1;     // Right of both cards
+        return [closest.playerId, rightPos+1];     // Right of both cards
       else 
-        return rightPos;       // Between the cards
+        return [closest.playerId, rightPos];       // Between the cards
     }
     else {  // Only one card thats near
       if(isLeftOfClosest)
-        return closest.pos;    // Left of card
+        return [closest.playerId, closest.pos];    // Left of card
       else
-        return closest.pos+1;  // Right of card
+        return [closest.playerId, closest.pos+1];  // Right of card
     }
   }
   return -1; // No objects close enough

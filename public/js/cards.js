@@ -360,7 +360,10 @@ export function setDrewAnObject(setting) {
 }
 
 export function setDraggingObj(object) {
-  draggingObj = object;
+  draggingObj.active = false;       // Hide object to be deleted in updateHand
+  draggingObj.setVisible(false);
   isDragging = object.objectId;
+  draggingObj = object;             // Reassign dragging object
+  draggingObj.depth = MENU_DEPTH-1; // Bring to front
   return draggingObj;
 }
